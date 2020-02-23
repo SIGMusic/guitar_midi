@@ -1,5 +1,9 @@
+//#include <MIDIUSB.h>
 #include "mpr121.h"
 #include <Wire.h>
+
+//midiEventPacket_t noteOn = {0x09, 0x90 | 0x01, 0x60, 127};
+//midiEventPacket_t noteOff = {0x08, 0x80 | 0x01, 0x60, 127};
 
 int irqpin = 2;  // Digital 2
 boolean touchStates[12]; //to keep track of the previous touch states
@@ -45,6 +49,9 @@ void readTouchInputs(){
           Serial.print("pin ");
           Serial.print(i);
           Serial.println(" was just touched");
+          //MidiUSB.sendMIDI(noteOn);
+          //MidiUSB.flush();
+          
         
         }else if(touchStates[i] == 1){
           //pin i is still being touched
@@ -56,6 +63,8 @@ void readTouchInputs(){
           Serial.print("pin ");
           Serial.print(i);
           Serial.println(" is no longer being touched");
+          //MidiUSB.sendMIDI(noteOff);
+          //MidiUSB.flush();
           
           //pin i is no longer being touched
        }
@@ -68,37 +77,38 @@ void readTouchInputs(){
   }
 }
 
-/* so do I do requestFrom
-send the addr of reg I want to read
-then do wire.read()?
-*/
+
 void reg_test(void){
-  byte test;
-  byte test2;
-  byte test3;
-  byte test4;
-  //Wire.beginTransmission(0x5A);
-  //Wire.write(0x05);
-  //Wire.endTransmission();
-  Wire.requestFrom(0x5A, 0x08);
+  /*
+  byte reg0_1;
+  byte reg0_2;
+  byte reg1_1;
+  byte reg1_2;
+  */
+  byte prev[0x17];
+  byte regs[0x17];
 
-  for(int i = 0; i < 0x07; i++){
-    //Serial.println(i);
-    test = Wire.read();
+  Wire.requestFrom(0x5A, 0x17);
+
+  for(int i = 0; i < 0x16; i++){
+    //test = Wire.read();
+    prev[i] = regs[i];
+    regs[i] = Wire.read();
   }
-  //Serial.println(++i);
-  test2 = Wire.read();
   //test2 = Wire.read();
-  //test3 = Wire.read();
-  //test4 = Wire.read();
-
-  //if(test != 0)
-    Serial.print(test);
-    Serial.print(":");
-    Serial.println(test2);
+  //Serial.print(test);
+  //Serial.print(":");
   //Serial.println(test2);
-  //Serial.println(test3);
-  //Serial.println(test4);
+  for(int i =4; i < 0x16; i++){
+    //if(prev[i] != regs[i] && (i == 16 || i ==17 || i == 4 || i==5 || i==6 || i==7) ){
+    //if(prev[i] != regs[i] && i%2 == 0){
+    if(i == 4 && prev[i] != regs[i]){
+      Serial.print(i);
+      Serial.print(": ");
+      Serial.println(regs[i]);
+    }
+  }
+
 }
 
 
